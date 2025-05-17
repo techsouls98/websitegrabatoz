@@ -61,7 +61,8 @@ app.post('/register', async (req, res) => {
         // Generate verification token
         const verificationToken = jwt.sign({ email, name, hashedPassword, phone, address, country, state, city, zip_code }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        const verificationUrl = `${process.env.SITE_URI}:${process.env.PORT}/verify-email/${verificationToken}`;
+        // const verificationUrl = `${process.env.SITE_URI}:${process.env.PORT}/verify-email/${verificationToken}`;
+        const verificationUrl = `${process.env.SITE_URI}/verify-email/${verificationToken}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
