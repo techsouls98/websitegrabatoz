@@ -5,8 +5,8 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
-const db = require('./database'); 
-const authenticate = require('./middleware/authMiddleware'); 
+const db = require('./database');
+const authenticate = require('./middleware/authMiddleware');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const app = express();
@@ -14,9 +14,9 @@ const paymentRoutes = require('./routes/payments');
 
 
 // Middleware
-app.use(cors()); 
-app.use(bodyParser.json()); 
-app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(paymentRoutes);
 // Nodemailer transporter setup
 const transporter = nodemailer.createTransport({
@@ -412,10 +412,12 @@ app.post('/api/ordersCustomer', async (req, res) => {
         card_info
     } = req.body;
 
-    if (!customer_id || !Array.isArray(items) || !total_amount) {
-        return res.status(400).json({ error: "Missing required data" });
+    // if (!customer_id || !Array.isArray(items) || !total_amount) {
+    //     return res.status(400).json({ error: "Missing required data" });
+    // }
+    if ((!customer_id && !guest_id) || !Array.isArray(items) || !total_amount) {
+        return res.status(400).json({ error: "Missing required data: customer_id or guest_id, items, and total_amount are required" });
     }
-
     try {
         const [orderResult] = await db.query(
             `INSERT INTO onlineorders 
