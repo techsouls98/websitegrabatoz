@@ -95,7 +95,7 @@ app.get('/verify-email/:token', async (req, res) => {
 
         const [existingUser] = await db.query('SELECT * FROM customers WHERE email = ?', [email]);
         if (existingUser.length > 0) {
-            return res.redirect(`${process.env.SITE_URI}/Main-file-Marketpro/login.html`); // redirect if already verified
+            return res.redirect(`${process.env.SITE_URI}/login`); // redirect if already verified
         }
 
         await db.query(
