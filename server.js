@@ -62,7 +62,8 @@ app.post('/register', async (req, res) => {
         const verificationToken = jwt.sign({ email, name, hashedPassword, phone, address, country, state, city, zip_code }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // const verificationUrl = `${process.env.SITE_URI}:${process.env.PORT}/verify-email/${verificationToken}`;
-        const verificationUrl = `${process.env.SITE_URI}:${process.env.PORT}/verify-email/${verificationToken}`;
+        const verificationUrl = `${process.env.SITE_URI}/verify-email/${verificationToken}`;
+
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -103,7 +104,8 @@ app.get('/verify-email/:token', async (req, res) => {
         );
 
         // Redirecting user to login page after successful verification
-        res.redirect(`${process.env.SITE_URI}:5501/Main-file-Marketpro/login.html`); // Change this to your actual login URL
+        // res.redirect(`${process.env.SITE_URI}:5501/Main-file-Marketpro/login.html`); // Change this to your actual login URL
+        res.redirect(`${process.env.SITE_URI}/Main-file-Marketpro/login.html`);
 
     } catch (error) {
         console.error('Verification error:', error);
