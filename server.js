@@ -768,9 +768,8 @@ app.post('/api/save-guest', (req, res) => {
         }
     });
 });
-
 app.post('/api/coupons/validate', async (req, res) => {
-    const { code, cartTotal } = req.body;
+    const { code } = req.body;
 
     try {
         // Get coupon from database
@@ -785,17 +784,13 @@ app.post('/api/coupons/validate', async (req, res) => {
 
         const couponData = coupon[0];
 
-        // Check minimum order amount
-        if (cartTotal < couponData.min_order_amount) {
-            return res.status(400).json({
-                message: `Minimum order amount of AED ${couponData.min_order_amount} required`
-            });
-        }
+        // (Optional) Mock user_id for testing without authentication
+        const userId = req.user?.id || 1;
 
-        // Check usage limits (you'll need a coupon_usage table for proper tracking)
+        // Check usage limits
         const [usage] = await db.query(
             'SELECT COUNT(*) AS count FROM coupon_usage WHERE coupon_id = ? AND user_id = ?',
-            [couponData.id, req.user.id] // Add user authentication if needed
+            [couponData.id, userId]
         );
 
         if (usage[0].count >= couponData.limit_per_user) {
@@ -818,6 +813,56 @@ app.post('/api/coupons/validate', async (req, res) => {
         res.status(500).json({ message: 'Error validating coupon' });
     }
 });
+
+// app.post('/api/coupons/validate', async (req, res) => {
+//     const { code, cartTotal } = req.body;
+
+//     try {
+//         // Get coupon from database
+//         const [coupon] = await db.query(
+//             'SELECT * FROM coupons WHERE code = ? AND NOW() BETWEEN start_date AND end_date',
+//             [code]
+//         );
+
+//         if (!coupon.length) {
+//             return res.status(400).json({ message: 'Invalid or expired coupon' });
+//         }
+
+//         const couponData = coupon[0];
+
+//         // Check minimum order amount
+//         if (cartTotal < couponData.min_order_amount) {
+//             return res.status(400).json({
+//                 message: `Minimum order amount of AED ${couponData.min_order_amount} required`
+//             });
+//         }
+
+//         // Check usage limits (you'll need a coupon_usage table for proper tracking)
+//         const [usage] = await db.query(
+//             'SELECT COUNT(*) AS count FROM coupon_usage WHERE coupon_id = ? AND user_id = ?',
+//             [couponData.id, req.user.id] // Add user authentication if needed
+//         );
+
+//         if (usage[0].count >= couponData.limit_per_user) {
+//             return res.status(400).json({ message: 'Coupon usage limit reached' });
+//         }
+
+//         res.json({
+//             valid: true,
+//             coupon: {
+//                 id: couponData.id,
+//                 code: couponData.code,
+//                 discount: couponData.discount,
+//                 discount_type: couponData.discount_type,
+//                 max_discount: couponData.max_discount
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Coupon validation error:', error);
+//         res.status(500).json({ message: 'Error validating coupon' });
+//     }
+// });
 
 // Start the Server
 const PORT = process.env.PORT || 5000;
