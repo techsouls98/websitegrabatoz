@@ -663,9 +663,19 @@ app.get('/api/products/discount', async (req, res) => {
 // });
 app.get('/api/filters', async (req, res) => {
     try {
-        const categoriesQuery = `SELECT DISTINCT category FROM products WHERE status = 'Active'`;
-        const brandsQuery = `SELECT DISTINCT brand FROM products WHERE status = 'Active'`;
-        const maxPriceQuery = `SELECT MAX(offer_price) AS maxPrice FROM products WHERE status = 'Active'`;
+        const categoriesQuery = `
+            SELECT DISTINCT c.name AS category 
+            FROM products p
+            JOIN product_categories c ON p.category = c.id
+            WHERE p.status = 'Active'`;
+
+        const brandsQuery = `
+            SELECT DISTINCT b.name AS brand 
+            FROM products p
+            JOIN product_brands b ON p.brand = b.id
+            WHERE p.status = 'Active'`;
+
+        const maxPriceQuery = `SELECT MAX(p.selling_price) AS maxPrice FROM products p WHERE p.status = 'Active'`;
 
         const [categories] = await db.query(categoriesQuery);
         const [brands] = await db.query(brandsQuery);
@@ -677,7 +687,7 @@ app.get('/api/filters', async (req, res) => {
             maxPrice: maxPrice || 0
         });
     } catch (err) {
-        console.error('Error fetching filters:', err.message);
+        console.error('❌ Error fetching filters:', err.message);
         res.status(500).json({ message: 'Error fetching filters', error: err.message });
     }
 });
