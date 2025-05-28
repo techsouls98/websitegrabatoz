@@ -642,25 +642,46 @@ app.get('/api/products/discount', async (req, res) => {
     }
 });
 
-app.get('/api/filters', async (req, res) => {
-    console.log('➡️ API Endpoint /api/filters Hit');
+// app.get('/api/filters', async (req, res) => {
+//     console.log('➡️ API Endpoint /api/filters Hit');
 
+//     try {
+//         const categoriesQuery = `SELECT DISTINCT category FROM products WHERE status = 'Active'`;
+//         const brandsQuery = `SELECT DISTINCT brand FROM products WHERE status = 'Active'`;
+
+//         const [categories] = await db.query(categoriesQuery);
+//         const [brands] = await db.query(brandsQuery);
+
+//         res.status(200).json({
+//             categories: categories.map((category) => category.category),
+//             brands: brands.map((brand) => brand.brand),
+//         });
+//     } catch (err) {
+//         console.error('❌ Error fetching filters:', err.message);
+//         res.status(500).json({ message: 'Error fetching filters', error: err.message });
+//     }
+// });
+app.get('/api/filters', async (req, res) => {
     try {
         const categoriesQuery = `SELECT DISTINCT category FROM products WHERE status = 'Active'`;
         const brandsQuery = `SELECT DISTINCT brand FROM products WHERE status = 'Active'`;
+        const maxPriceQuery = `SELECT MAX(offer_price) AS maxPrice FROM products WHERE status = 'Active'`;
 
         const [categories] = await db.query(categoriesQuery);
         const [brands] = await db.query(brandsQuery);
+        const [[{ maxPrice }]] = await db.query(maxPriceQuery);
 
         res.status(200).json({
-            categories: categories.map((category) => category.category),
-            brands: brands.map((brand) => brand.brand),
+            categories: categories.map(c => c.category),
+            brands: brands.map(b => b.brand),
+            maxPrice: maxPrice || 0
         });
     } catch (err) {
-        console.error('❌ Error fetching filters:', err.message);
+        console.error('Error fetching filters:', err.message);
         res.status(500).json({ message: 'Error fetching filters', error: err.message });
     }
 });
+
 
 app.get('/api/products/:slug', async (req, res) => {
     const productId = req.params.slug;
