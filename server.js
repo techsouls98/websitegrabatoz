@@ -845,6 +845,35 @@ app.post('/api/coupons/validate', async (req, res) => {
     }
 });
 
+app.get('/api/coupons/code/:code', async (req, res) => {
+    const { code } = req.params;
+
+    try {
+        const sql = 'SELECT * FROM coupons WHERE code = ?';
+        const [rows] = await db.query(sql, [code]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Coupon not found' });
+        }
+
+        const coupon = rows[0];
+
+        // Return only necessary fields
+        res.status(200).json({
+            code: coupon.code,
+            discount: parseFloat(coupon.discount),
+            discount_type: coupon.discount_type,
+            min_order_amount: parseFloat(coupon.min_order_amount),
+            max_discount: parseFloat(coupon.max_discount)
+        });
+
+    } catch (err) {
+        console.error('Error fetching coupon:', err.message);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 // app.post('/api/coupons/validate', async (req, res) => {
 //     const { code, cartTotal } = req.body;
 
