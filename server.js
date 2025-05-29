@@ -736,7 +736,7 @@ app.get('/api/product-categories', async (req, res) => {
 
     try {
         const [rows] = await db.query(`
-            SELECT id, name, image_path, parent_category
+            SELECT *
             FROM product_categories
             WHERE status = 'Active'
         `);
