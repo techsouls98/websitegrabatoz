@@ -693,14 +693,53 @@ app.get('/api/filters', async (req, res) => {
 });
 
 
+// app.get('/api/products/:slug', async (req, res) => {
+//     const productId = req.params.slug;
+//     try {
+//         const [rows] = await db.query('SELECT * FROM products WHERE slug = ?', [productId]);
+//         // console.log([rows],"slug.....");
+
+//         if (rows.length > 0) {
+//             res.status(200).json(rows[0]);
+//         } else {
+//             res.status(404).json({ message: 'Product not found' });
+//         }
+//     } catch (err) {
+//         console.error('Error fetching product details:', err);
+//         res.status(500).json({ message: 'Error fetching product details', error: err.message });
+//     }
+// });
 app.get('/api/products/:slug', async (req, res) => {
-    const productId = req.params.slug;
+    const productSlug = req.params.slug;
+
     try {
-        const [rows] = await db.query('SELECT * FROM products WHERE slug = ?', [productId]);
-        // console.log([rows],"slug.....");
+        const [rows] = await db.query(`
+            SELECT 
+                p.*,
+                c.name AS category_name,
+                b.name AS brand_name
+            FROM products p
+            LEFT JOIN product_categories c ON p.category = c.id
+            LEFT JOIN product_brands b ON p.brand = b.id
+            WHERE p.slug = ?
+        `, [productSlug]);
 
         if (rows.length > 0) {
-            res.status(200).json(rows[0]);
+            const product = rows[0];
+
+            // Fix image paths formatting
+            if (product.image_path) {
+                product.image_path = product.image_path.replace(/\\/g, '/');
+            }
+            if (product.image_paths) {
+                try {
+                    product.image_paths = JSON.parse(product.image_paths).map(p => p.replace(/\\/g, '/'));
+                } catch (e) {
+                    product.image_paths = [];
+                }
+            }
+
+            res.status(200).json(product);
         } else {
             res.status(404).json({ message: 'Product not found' });
         }
@@ -709,6 +748,8 @@ app.get('/api/products/:slug', async (req, res) => {
         res.status(500).json({ message: 'Error fetching product details', error: err.message });
     }
 });
+
+
 
 app.get('/api/product-counts', async (req, res) => {
     console.log('➡️ API Endpoint /api/product-counts Hit');
