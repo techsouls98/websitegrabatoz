@@ -535,7 +535,6 @@ app.get('/api/products', async (req, res) => {
             params.push(discount);
         }
 
-        query += ' LIMIT 20';
         const [rows] = await db.query(query, params);
 
         rows.forEach((row) => {
