@@ -560,6 +560,94 @@ app.get('/api/products', async (req, res) => {
         res.status(500).json({ message: 'Error fetching products', error: err.message });
     }
 });
+app.get('/api/productsearchbar', async (req, res) => {
+    console.log('➡ API Endpoint /api/productsearchbar Hit');
+
+    const { query, category, brand, minPrice, maxPrice, discount } = req.query;
+
+    try {
+        let sqlQuery = `
+            SELECT 
+                p.id, 
+                p.name, 
+                p.slug, 
+                p.selling_price, 
+                p.discount, 
+                p.offer_price,
+                p.image_path, 
+                p.image_paths, 
+                p.status,
+                c.name AS category_name,
+                b.name AS brand_name
+            FROM products p
+            LEFT JOIN product_categories c ON p.category = c.id
+            LEFT JOIN product_brands b ON p.brand = b.id
+            WHERE p.status = 'Active'
+        `;
+
+        const params = [];
+
+        // Search query
+        if (query) {
+            sqlQuery += ` AND (p.name LIKE ? OR b.name LIKE ?)`;
+            const searchPattern = `%${query}%`;  // Corrected search pattern
+            params.push(searchPattern, searchPattern);
+        }
+
+        // Filters
+        if (category) {
+            sqlQuery += ` AND c.name = ?`;
+            params.push(category);
+        }
+
+        if (brand) {
+            sqlQuery += ` AND b.name = ?`;
+            params.push(brand);
+        }
+
+        if (minPrice) {
+            sqlQuery += ` AND p.selling_price >= ?`;
+            params.push(minPrice);
+        }
+
+        if (maxPrice) {
+            sqlQuery += ` AND p.selling_price <= ?`;
+            params.push(maxPrice);
+        }
+
+        if (discount) {
+            sqlQuery += ` AND p.discount >= ?`;
+            params.push(discount);
+        }
+
+        // Execute query
+        const [rows] = await db.query(sqlQuery, params);
+
+        // Process image paths if they exist
+        rows.forEach((row) => {
+            if (row.image_path) {
+                row.image_path = row.image_path.replace(/\\/g, '/');
+            }
+            if (row.image_paths) {
+                try {
+                    row.image_paths = JSON.parse(row.image_paths).map(p => p.replace(/\\/g, '/'));
+                } catch (e) {
+                    row.image_paths = [];
+                }
+            }
+        });
+
+        // Return products found
+        res.status(200).json({
+            products: rows,
+            totalCount: rows.length,  // Return total count of found products
+        });
+
+    } catch (err) {
+        console.error('❌ Error fetching products:', err.message);
+        res.status(500).json({ message: 'Error fetching products', error: err.message });
+    }
+});
 app.get('/api/products/discount', async (req, res) => {
     console.log('➡️ API Endpoint /api/products Hit');
 
